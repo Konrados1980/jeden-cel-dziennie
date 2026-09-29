@@ -42,19 +42,72 @@ export function getStoredCurrentGoal(): DayGoal | null {
   }
 }
 
-export function saveCurrentGoal(goal: DayGoal): void {
+export function saveCurrentGoal(goal: DayGoal): boolean {
   try {
     localStorage.setItem(STORAGE_KEYS.CURRENT_GOAL, JSON.stringify(goal));
+    return true;
   } catch (e) {
     console.error('Błąd zapisu aktualnego celu', e);
+    return false;
   }
 }
 
-export function clearCurrentGoal(): void {
+export function exportBackup(currentGoal?: DayGoal | null): void {
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    currentGoal: currentGoal ?? getStoredCurrentGoal(),
+    history: getHistory(),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `jeden-cel-dziennie-kopia-${getTodayDateString()}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function importBackup(file: File): Promise<void> {
+  const parsed: unknown = JSON.parse(await file.text());
+  if (!parsed || typeof parsed !== 'object') throw new Error('Nieprawidłowy plik kopii.');
+  const data = parsed as { version?: number; currentGoal?: DayGoal | null; history?: DayGoal[] };
+  const validGoal = (goal: unknown): goal is DayGoal => {
+    if (!goal || typeof goal !== 'object') return false;
+    const item = goal as Partial<DayGoal>;
+    return typeof item.id === 'string' && typeof item.date === 'string' && typeof item.goal === 'string'
+      && typeof item.progress === 'number' && item.progress >= 0 && item.progress <= 100
+      && ['in_progress', 'completed', 'abandoned'].includes(item.status ?? '')
+      && typeof item.createdAt === 'string';
+  };
+  if (data.version !== 1 || !Array.isArray(data.history) || !data.history.every(validGoal)
+    || (data.currentGoal != null && !validGoal(data.currentGoal))) {
+    throw new Error('Plik kopii ma nieobsługiwany format lub zawiera nieprawidłowe dane.');
+  }
+  const previousHistory = localStorage.getItem(STORAGE_KEYS.HISTORY);
+  const previousCurrent = localStorage.getItem(STORAGE_KEYS.CURRENT_GOAL);
+  try {
+    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(data.history));
+    if (data.currentGoal) localStorage.setItem(STORAGE_KEYS.CURRENT_GOAL, JSON.stringify(data.currentGoal));
+    else localStorage.removeItem(STORAGE_KEYS.CURRENT_GOAL);
+  } catch (error) {
+    try {
+      if (previousHistory === null) localStorage.removeItem(STORAGE_KEYS.HISTORY);
+      else localStorage.setItem(STORAGE_KEYS.HISTORY, previousHistory);
+      if (previousCurrent === null) localStorage.removeItem(STORAGE_KEYS.CURRENT_GOAL);
+      else localStorage.setItem(STORAGE_KEYS.CURRENT_GOAL, previousCurrent);
+    } catch (rollbackError) { console.error('Nie udało się przywrócić danych po błędzie importu kopii.', rollbackError); }
+    throw error;
+  }
+}
+
+export function clearCurrentGoal(): boolean {
   try {
     localStorage.removeItem(STORAGE_KEYS.CURRENT_GOAL);
+    return true;
   } catch (e) {
     console.error('Błąd usuwania aktualnego celu', e);
+    return false;
   }
 }
 
@@ -71,19 +124,21 @@ export function getHistory(): DayGoal[] {
   }
 }
 
-export function saveGoalToHistory(goal: DayGoal): void {
+export function saveGoalToHistory(goal: DayGoal): boolean {
   try {
     const history = getHistory();
-    // Check if goal with same id or date already exists in history
-    const existingIndex = history.findIndex((h) => h.id === goal.id || h.date === goal.date);
+    // Replace only the same record; multiple goals on one date must not erase each other.
+    const existingIndex = history.findIndex((h) => h.id === goal.id);
     if (existingIndex >= 0) {
       history[existingIndex] = goal;
     } else {
       history.unshift(goal);
     }
     localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+    return true;
   } catch (e) {
     console.error('Błąd zapisu do historii', e);
+    return false;
   }
 }
 
@@ -110,7 +165,9 @@ export function clearAllData(): void {
  */
 function escapeCSVField(field: unknown): string {
   if (field === null || field === undefined) return '""';
-  const str = String(field);
+  let str = String(field);
+  // Prevent spreadsheet formula execution in user supplied cells.
+  if (/^[\u0000-\u0020]*[=+@-]/.test(str)) str = `'${str}`;
   // If string contains comma, newline or quotes, wrap in quotes and escape internal quotes
   const escaped = str.replace(/"/g, '""');
   return `"${escaped}"`;
@@ -142,7 +199,7 @@ export function exportHistoryToCSV(goals: DayGoal[]): void {
     if (item.achieved === true) achievedText = 'Tak';
     else if (item.achieved === false) achievedText = 'Nie';
 
-    const dayName = item.formattedDate.split(',')[0] || '';
+    const dayName = (item.formattedDate || item.date).split(',')[0] || '';
     const createdTime = item.createdAt ? new Date(item.createdAt).toLocaleTimeString('pl-PL') : '';
     const completedTime = item.completedAt ? new Date(item.completedAt).toLocaleTimeString('pl-PL') : '';
 
@@ -154,7 +211,7 @@ export function exportHistoryToCSV(goals: DayGoal[]): void {
       escapeCSVField(`${item.progress}%`),
       escapeCSVField(item.helped || ''),
       escapeCSVField(item.hindered || ''),
-      escapeCSVField(item.status === 'completed' ? 'Zakończony' : 'W toku'),
+      escapeCSVField(item.status === 'completed' ? 'Zakończony' : item.status === 'abandoned' ? 'Przeniesiony' : 'W toku'),
       escapeCSVField(createdTime),
       escapeCSVField(completedTime),
     ].join(';'); // Semicolon is the standard Excel delimiter for European/Polish locales

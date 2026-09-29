@@ -11,7 +11,7 @@ const QUICK_INSPIRATIONS = [
   'Napisać pierwszy szkic artykułu / rozdziału',
   'Zaprojektować makietę nowego ekranu',
   'Wysłać gotową ofertę do klienta',
-  'Przeprowadzić pełny refaktoring bazy kodu',
+  'Naprawić konkretny błąd w module płatności i dodać test regresyjny',
   'Przygotować scenariusz prezentacji',
 ];
 
@@ -54,7 +54,7 @@ export const GoalInput: React.FC<GoalInputProps> = ({ onSetGoal, initialValue = 
           Jaki jest Twój najważniejszy cel na dziś?
         </h2>
         <p className="mt-3 text-stone-600 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-          Tylko jedna kluczowa rzecz. Jeśli zrobisz dziś wyłącznie to zadanie,
+          Wybierz jeden konkretny, możliwy do sprawdzenia rezultat. Jeśli zrobisz dziś wyłącznie tę rzecz,
           Twój dzień będzie pełnym sukcesem.
         </p>
       </div>
@@ -67,11 +67,12 @@ export const GoalInput: React.FC<GoalInputProps> = ({ onSetGoal, initialValue = 
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={3}
-            placeholder="Wpisz swój najważniejszy cel..."
+            aria-label="Najważniejszy cel na dziś"
+            placeholder="np. Dokończyć formularz płatności i sprawdzić go na urządzeniu mobilnym"
             className="w-full resize-none border-0 p-0 text-stone-900 placeholder:text-stone-400 text-lg sm:text-xl font-normal focus:outline-hidden focus:ring-0 leading-relaxed bg-transparent"
           />
           <div className="flex items-center justify-between pt-2 border-t border-stone-100 mt-2 text-xs text-stone-600">
-            <span>Naciśnij <kbd className="px-1.5 py-0.5 bg-stone-100 rounded text-stone-700 font-mono text-[11px]">Enter</kbd> aby zatwierdzić</span>
+            <span><kbd className="px-1.5 py-0.5 bg-stone-100 rounded text-stone-700 font-mono text-[11px]">Enter</kbd> zatwierdza · <kbd className="px-1.5 py-0.5 bg-stone-100 rounded text-stone-700 font-mono text-[11px]">Shift + Enter</kbd> nowa linia</span>
             <span>{text.length} znaków</span>
           </div>
         </div>

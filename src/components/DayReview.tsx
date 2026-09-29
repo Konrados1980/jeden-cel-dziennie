@@ -76,6 +76,7 @@ export const DayReview: React.FC<DayReviewProps> = ({
             {/* TAK Button */}
             <button
               type="button"
+              aria-pressed={achieved === true}
               onClick={() => {
                 setAchieved(true);
                 setShowValidation(false);
@@ -102,6 +103,7 @@ export const DayReview: React.FC<DayReviewProps> = ({
             {/* NIE Button */}
             <button
               type="button"
+              aria-pressed={achieved === false}
               onClick={() => {
                 setAchieved(false);
                 setShowValidation(false);
@@ -137,10 +139,11 @@ export const DayReview: React.FC<DayReviewProps> = ({
         <div className="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200/90 shadow-sm space-y-5">
           {/* Co pomogło */}
           <div>
-            <label className="block text-sm font-medium text-stone-900 mb-1.5">
+            <label htmlFor="reflection-helped" className="block text-sm font-medium text-stone-900 mb-1.5">
               Co pomogło? <span className="text-xs text-stone-600 font-normal">(opcjonalne)</span>
             </label>
             <textarea
+              id="reflection-helped"
               value={helped}
               onChange={(e) => setHelped(e.target.value)}
               rows={2}
@@ -151,10 +154,11 @@ export const DayReview: React.FC<DayReviewProps> = ({
 
           {/* Co przeszkodziło */}
           <div>
-            <label className="block text-sm font-medium text-stone-900 mb-1.5">
+            <label htmlFor="reflection-hindered" className="block text-sm font-medium text-stone-900 mb-1.5">
               Co przeszkodziło? <span className="text-xs text-stone-600 font-normal">(opcjonalne)</span>
             </label>
             <textarea
+              id="reflection-hindered"
               value={hindered}
               onChange={(e) => setHindered(e.target.value)}
               rows={2}

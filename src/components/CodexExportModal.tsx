@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, Check, Copy, Code2, FolderTree, Terminal } from 'lucide-react';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface CodexExportModalProps {
   isOpen: boolean;
@@ -8,6 +9,8 @@ interface CodexExportModalProps {
 
 export const CodexExportModal: React.FC<CodexExportModalProps> = ({ isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModalAccessibility(dialogRef, isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -46,7 +49,7 @@ Struktura plików projektu:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl shadow-xl border border-stone-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="codex-dialog-title" tabIndex={-1} className="bg-white rounded-2xl shadow-xl border border-stone-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="p-5 sm:px-6 border-b border-stone-200/80 flex items-center justify-between bg-stone-50/50">
           <div className="flex items-center gap-2.5">
@@ -54,7 +57,7 @@ Struktura plików projektu:
               <Code2 className="w-4 h-4 text-amber-700" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-stone-900">
+              <h3 id="codex-dialog-title" className="font-semibold text-lg text-stone-900">
                 Gotowość do przeniesienia do OpenAI Codex
               </h3>
               <p className="text-xs text-stone-600">
@@ -64,6 +67,7 @@ Struktura plików projektu:
           </div>
           <button
             onClick={onClose}
+            aria-label="Zamknij okno"
             className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />

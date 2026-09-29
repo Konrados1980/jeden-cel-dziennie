@@ -26,14 +26,21 @@ export default function App() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isCodexModalOpen, setIsCodexModalOpen] = useState(false);
   const [editGoalMode, setEditGoalMode] = useState(false);
+  const [storageError, setStorageError] = useState('');
 
   // Initialize data from localStorage on load
   const loadData = useCallback(() => {
-    const storedHistory = getHistory();
-    setHistory(storedHistory);
-
     const storedGoal = getStoredCurrentGoal();
-    if (storedGoal) {
+    if (storedGoal && storedGoal.date < getTodayDateString()) {
+      const archivedGoal: DayGoal = storedGoal.status === 'completed'
+        ? storedGoal
+        : { ...storedGoal, status: 'abandoned', completedAt: new Date().toISOString() };
+      const saved = saveGoalToHistory(archivedGoal);
+      const cleared = clearCurrentGoal();
+      if (!saved || !cleared) setStorageError('Nie udało się bezpiecznie zamknąć celu z poprzedniego dnia. Zrób kopię danych i sprawdź miejsce w przeglądarce.');
+      setCurrentGoal(null);
+      setStage('setup');
+    } else if (storedGoal && storedGoal.date === getTodayDateString()) {
       setCurrentGoal(storedGoal);
       if (storedGoal.status === 'completed') {
         setStage('completed');
@@ -41,12 +48,22 @@ export default function App() {
         setStage('active');
       }
     } else {
+      if (storedGoal) clearCurrentGoal();
+      setCurrentGoal(null);
       setStage('setup');
     }
+    setHistory(getHistory());
   }, []);
 
   useEffect(() => {
     loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    const refresh = () => loadData();
+    const timer = window.setInterval(refresh, 60_000);
+    window.addEventListener('focus', refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, [loadData]);
 
   // Handler: Set new goal for today
@@ -65,7 +82,7 @@ export default function App() {
     };
 
     setCurrentGoal(updatedGoal);
-    saveCurrentGoal(updatedGoal);
+    if (!saveCurrentGoal(updatedGoal)) setStorageError('Nie udało się zapisać celu. Sprawdź wolne miejsce w przeglądarce.');
     setEditGoalMode(false);
     setStage('active');
   };
@@ -78,7 +95,7 @@ export default function App() {
       progress,
     };
     setCurrentGoal(updated);
-    saveCurrentGoal(updated);
+    if (!saveCurrentGoal(updated)) setStorageError('Nie udało się zapisać postępu. Zmiany mogą zniknąć po zamknięciu strony.');
   };
 
   // Handler: Click "Cel osiągnięty"
@@ -90,7 +107,7 @@ export default function App() {
       achieved: true,
     };
     setCurrentGoal(updated);
-    saveCurrentGoal(updated);
+    if (!saveCurrentGoal(updated)) setStorageError('Nie udało się zapisać celu. Sprawdź wolne miejsce w przeglądarce.');
     // Transition straight to evening review to capture what helped/hindered
     setStage('review');
   };
@@ -117,8 +134,9 @@ export default function App() {
     };
 
     setCurrentGoal(completedGoal);
-    saveCurrentGoal(completedGoal);
-    saveGoalToHistory(completedGoal);
+    const currentSaved = saveCurrentGoal(completedGoal);
+    const historySaved = saveGoalToHistory(completedGoal);
+    if (!currentSaved || !historySaved) setStorageError('Nie udało się zapisać podsumowania. Zrób kopię danych i sprawdź wolne miejsce w przeglądarce.');
 
     // Refresh history in state
     setHistory(getHistory());
@@ -127,7 +145,7 @@ export default function App() {
 
   // Handler: Start a fresh new day / goal
   const handleStartNewDay = () => {
-    clearCurrentGoal();
+    if (!clearCurrentGoal()) setStorageError('Nie udało się wyczyścić aktywnego celu.');
     setCurrentGoal(null);
     setStage('setup');
     setEditGoalMode(false);
@@ -136,9 +154,10 @@ export default function App() {
   // Handler: Quick CSV Export
   const handleQuickExport = () => {
     let exportList = [...history];
-    // If history is empty but currentGoal exists, export currentGoal
-    if (exportList.length === 0 && currentGoal) {
-      exportList = [currentGoal];
+    if (currentGoal) {
+      const currentIndex = exportList.findIndex((item) => item.id === currentGoal.id);
+      if (currentIndex >= 0) exportList[currentIndex] = currentGoal;
+      else exportList.unshift(currentGoal);
     }
     if (exportList.length > 0) {
       exportHistoryToCSV(exportList);
@@ -159,6 +178,7 @@ export default function App() {
 
       {/* Main Container */}
       <main className="flex-1 flex flex-col justify-center px-4 sm:px-6">
+        {storageError && <div role="alert" className="mx-auto mt-4 max-w-xl rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">{storageError}<button type="button" onClick={() => setStorageError('')} className="ml-3 underline">Zamknij</button></div>}
         {/* Stage 1: Setup / Input or Edit Goal */}
         {(stage === 'setup' || editGoalMode) && (
           <GoalInput
@@ -233,6 +253,7 @@ export default function App() {
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         history={history}
+        currentGoal={currentGoal}
         onRefresh={loadData}
       />
 
