@@ -1,17 +1,15 @@
 import React from 'react';
-import { Target, History, Download, Code2, Sparkles } from 'lucide-react';
+import { Target, History, Download } from 'lucide-react';
 import { formatPolishDate, capitalizeFirstLetter } from '../services/storage';
 
 interface HeaderProps {
   onOpenHistory: () => void;
-  onOpenCodexModal: () => void;
   onQuickExport: () => void;
   historyCount: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenHistory,
-  onOpenCodexModal,
   onQuickExport,
   historyCount,
 }) => {
@@ -61,14 +59,6 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          <button
-            onClick={onOpenCodexModal}
-            title="Jak przenieść do OpenAI Codex / instrukcja"
-            className="p-2 sm:px-3 sm:py-1.5 text-xs font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <Code2 className="w-4 h-4 text-amber-600" />
-            <span className="hidden sm:inline">Gotowe pod Codex</span>
-          </button>
         </div>
       </div>
     </header>

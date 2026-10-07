@@ -1,6 +1,0 @@
-{
-  "name": "Jeden cel dziennie",
-  "description": "Minimalistyczny planer dla osób pracujących twórczo: jeden najważniejszy cel na dzień, prosty progres i wieczorne podsumowanie z eksportem CSV.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

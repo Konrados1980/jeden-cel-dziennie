@@ -17,14 +17,12 @@ import { ActiveGoal } from './components/ActiveGoal';
 import { DayReview } from './components/DayReview';
 import { DayCompleted } from './components/DayCompleted';
 import { HistoryModal } from './components/HistoryModal';
-import { CodexExportModal } from './components/CodexExportModal';
 
 export default function App() {
   const [currentGoal, setCurrentGoal] = useState<DayGoal | null>(null);
   const [stage, setStage] = useState<AppStage>('setup');
   const [history, setHistory] = useState<DayGoal[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isCodexModalOpen, setIsCodexModalOpen] = useState(false);
   const [editGoalMode, setEditGoalMode] = useState(false);
   const [storageError, setStorageError] = useState('');
 
@@ -171,7 +169,6 @@ export default function App() {
       {/* Top Header */}
       <Header
         onOpenHistory={() => setIsHistoryOpen(true)}
-        onOpenCodexModal={() => setIsCodexModalOpen(true)}
         onQuickExport={handleQuickExport}
         historyCount={history.length}
       />
@@ -237,13 +234,6 @@ export default function App() {
             >
               Pobierz CSV
             </button>
-            <span>•</span>
-            <button
-              onClick={() => setIsCodexModalOpen(true)}
-              className="hover:text-stone-900 text-amber-700 font-medium cursor-pointer"
-            >
-              Do Codexa
-            </button>
           </div>
         </div>
       </footer>
@@ -255,11 +245,6 @@ export default function App() {
         history={history}
         currentGoal={currentGoal}
         onRefresh={loadData}
-      />
-
-      <CodexExportModal
-        isOpen={isCodexModalOpen}
-        onClose={() => setIsCodexModalOpen(false)}
       />
     </div>
   );
