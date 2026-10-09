@@ -2,6 +2,8 @@
 
 Minimalistyczna aplikacja webowa dla osób pracujących twórczo przy komputerze (programistów, projektantów, pisarzy, twórców cyfrowych). Jeden dzień, jeden najważniejszy cel, bez rozpraszaczy.
 
+**Wersja online:** https://jeden-cel-dziennie.konrad-sosnowski1980.workers.dev
+
 ## Funkcje
 
 - **Jeden dzień = jeden cel**: wybierasz tylko to zadanie, które naprawdę przesunie Twoją pracę do przodu.
@@ -16,7 +18,7 @@ Niedokończony cel z poprzedniego dnia trafia automatycznie do historii ze statu
 
 ## Uruchomienie
 
-Wymagania: Node.js 18 lub nowszy.
+Wymagania: Node.js 20.19 lub nowszy.
 
 ```bash
 npm install     # instalacja zależności
