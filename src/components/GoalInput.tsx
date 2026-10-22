@@ -82,7 +82,7 @@ export const GoalInput: React.FC<GoalInputProps> = ({ onSetGoal, initialValue = 
           disabled={!text.trim()}
           className="w-full py-4 px-6 rounded-xl bg-stone-900 text-white font-medium text-base hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs hover:shadow-md flex items-center justify-center gap-2 cursor-pointer group"
         >
-          <span>Ustaw cel na dziś</span>
+          <span>Zaczynam dziś</span>
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
         </button>
       </form>
