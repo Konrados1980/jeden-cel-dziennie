@@ -50,7 +50,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-xs animate-fade-in">
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="history-title" tabIndex={-1} className="bg-white rounded-2xl shadow-xl border border-stone-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="p-5 sm:px-6 border-b border-stone-200/80 flex items-center justify-between bg-stone-50/50">
@@ -197,7 +197,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                           </span>
                         )}
 
-                        <span className="text-[11px] font-mono font-medium text-stone-600 bg-stone-50 border border-stone-200/60 px-1.5 py-0.2 rounded">
+                        <span className="text-[11px] font-mono font-medium text-stone-600 bg-stone-50 border border-stone-200/60 px-1.5 py-px rounded">
                           {item.progress}%
                         </span>
                       </div>

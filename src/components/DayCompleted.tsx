@@ -67,7 +67,7 @@ export const DayCompleted: React.FC<DayCompletedProps> = ({
         {(goal.helped || goal.hindered) && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-stone-100 text-sm">
             {goal.helped && (
-              <div className="bg-stone-50 p-3.5 rounded-xl border border-stone-150">
+              <div className="bg-stone-50 p-3.5 rounded-xl border border-stone-200">
                 <span className="text-xs font-semibold text-emerald-800 block mb-1">
                   ✓ Co pomogło:
                 </span>
@@ -75,7 +75,7 @@ export const DayCompleted: React.FC<DayCompletedProps> = ({
               </div>
             )}
             {goal.hindered && (
-              <div className="bg-stone-50 p-3.5 rounded-xl border border-stone-150">
+              <div className="bg-stone-50 p-3.5 rounded-xl border border-stone-200">
                 <span className="text-xs font-semibold text-amber-800 block mb-1">
                   ! Co przeszkodziło:
                 </span>
