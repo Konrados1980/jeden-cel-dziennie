@@ -1,8 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { X, Download, Trash2, CheckCircle2, XCircle, Clock, PlusCircle, Upload } from 'lucide-react';
 import { DayGoal } from '../types';
-import { exportBackup, importBackup, exportHistoryToCSV, deleteGoalFromHistory, seedSampleHistory, calculateStats } from '../services/storage';
+import { importBackup, deleteGoalFromHistory, seedSampleHistory } from '../services/storage';
+import { exportBackup, exportHistoryToCSV } from '../services/exporters';
+import { calculateStats, mergeCurrentGoal } from '../services/history';
 import { useModalAccessibility } from '../hooks/useModalAccessibility';
+import { ReflectionNotes } from './ReflectionNotes';
 
 interface HistoryModalProps {
   isOpen: boolean;
@@ -29,13 +32,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   const stats = calculateStats(history);
 
   const handleExport = () => {
-    const exportItems = [...history];
-    if (currentGoal) {
-      const index = exportItems.findIndex((item) => item.id === currentGoal.id);
-      if (index >= 0) exportItems[index] = currentGoal;
-      else exportItems.unshift(currentGoal);
-    }
-    exportHistoryToCSV(exportItems);
+    exportHistoryToCSV(mergeCurrentGoal(history, currentGoal));
   };
 
   const handleDelete = (id: string) => {
@@ -266,26 +263,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                     )}
                   </div>
 
-                  {(item.helped || item.hindered) && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 text-xs border-t border-stone-100">
-                      {item.helped && (
-                        <div className="bg-stone-50/80 p-2.5 rounded-lg border border-stone-100">
-                          <span className="font-semibold text-emerald-800 block mb-0.5">
-                            Co pomogło:
-                          </span>
-                          <span className="text-stone-700">{item.helped}</span>
-                        </div>
-                      )}
-                      {item.hindered && (
-                        <div className="bg-stone-50/80 p-2.5 rounded-lg border border-stone-100">
-                          <span className="font-semibold text-amber-800 block mb-0.5">
-                            Co przeszkodziło:
-                          </span>
-                          <span className="text-stone-700">{item.hindered}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <ReflectionNotes helped={item.helped} hindered={item.hindered} variant="compact" />
                 </div>
               );
             })

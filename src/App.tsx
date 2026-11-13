@@ -6,11 +6,10 @@ import {
   clearCurrentGoal,
   getHistory,
   saveGoalToHistory,
-  exportHistoryToCSV,
-  getTodayDateString,
-  formatPolishDate,
-  capitalizeFirstLetter,
 } from './services/storage';
+import { getTodayDateString, formatPolishDate, capitalizeFirstLetter } from './services/dates';
+import { exportHistoryToCSV } from './services/exporters';
+import { mergeCurrentGoal } from './services/history';
 import { Header } from './components/Header';
 import { GoalInput } from './components/GoalInput';
 import { ActiveGoal } from './components/ActiveGoal';
@@ -145,12 +144,7 @@ export default function App() {
   };
 
   const handleQuickExport = () => {
-    let exportList = [...history];
-    if (currentGoal) {
-      const currentIndex = exportList.findIndex((item) => item.id === currentGoal.id);
-      if (currentIndex >= 0) exportList[currentIndex] = currentGoal;
-      else exportList.unshift(currentGoal);
-    }
+    const exportList = mergeCurrentGoal(history, currentGoal);
     if (exportList.length > 0) {
       exportHistoryToCSV(exportList);
     } else {

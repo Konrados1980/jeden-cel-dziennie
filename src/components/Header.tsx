@@ -1,6 +1,6 @@
 import React from 'react';
 import { Target, History, Download } from 'lucide-react';
-import { formatPolishDate, capitalizeFirstLetter } from '../services/storage';
+import { formatPolishDate, capitalizeFirstLetter } from '../services/dates';
 
 interface HeaderProps {
   onOpenHistory: () => void;

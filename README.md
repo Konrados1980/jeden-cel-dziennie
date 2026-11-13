@@ -40,9 +40,12 @@ src/
 ├── App.tsx           # stan aplikacji: setup → active → review → completed
 ├── types.ts          # DayGoal, DayStatus, AppStage
 ├── services/
-│   └── storage.ts    # localStorage, daty po polsku, eksport CSV i kopii JSON
+│   ├── storage.ts    # localStorage: cel, historia, przywracanie kopii JSON
+│   ├── exporters.ts  # eksport CSV i kopii JSON
+│   ├── history.ts    # statystyki i scalanie bieżącego celu z historią
+│   └── dates.ts      # daty po polsku
 ├── components/       # Header, GoalInput, ActiveGoal, DayReview,
-│                     # DayCompleted, HistoryModal
+│                     # DayCompleted, HistoryModal, ReflectionNotes
 ├── hooks/            # dostępność okien modalnych
 └── utils/sound.ts    # dźwięki interakcji (Web Audio API)
 ```

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, XCircle, Download, RotateCcw, History, Edit2, Calendar } from 'lucide-react';
 import { DayGoal } from '../types';
+import { ReflectionNotes } from './ReflectionNotes';
 
 interface DayCompletedProps {
   goal: DayGoal;
@@ -62,26 +63,7 @@ export const DayCompleted: React.FC<DayCompletedProps> = ({
           <p className="text-lg font-medium text-stone-900 mt-1">{goal.goal}</p>
         </div>
 
-        {(goal.helped || goal.hindered) && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-stone-100 text-sm">
-            {goal.helped && (
-              <div className="bg-stone-50 p-3.5 rounded-xl border border-stone-200">
-                <span className="text-xs font-semibold text-emerald-800 block mb-1">
-                  ✓ Co pomogło:
-                </span>
-                <p className="text-stone-700 leading-relaxed">{goal.helped}</p>
-              </div>
-            )}
-            {goal.hindered && (
-              <div className="bg-stone-50 p-3.5 rounded-xl border border-stone-200">
-                <span className="text-xs font-semibold text-amber-800 block mb-1">
-                  ! Co przeszkodziło:
-                </span>
-                <p className="text-stone-700 leading-relaxed">{goal.hindered}</p>
-              </div>
-            )}
-          </div>
-        )}
+        <ReflectionNotes helped={goal.helped} hindered={goal.hindered} variant="card" />
 
         <div className="pt-2 flex justify-end">
           <button

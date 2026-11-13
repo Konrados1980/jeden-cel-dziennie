@@ -1,34 +1,10 @@
 import { DayGoal } from '../types';
+import { getDaysAgo } from './dates';
 
 const STORAGE_KEYS = {
   CURRENT_GOAL: 'jeden_cel_dziennie_current',
   HISTORY: 'jeden_cel_dziennie_history',
 };
-
-export function getTodayDateString(d = new Date()): string {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-export function formatPolishDate(d = new Date()): string {
-  try {
-    return new Intl.DateTimeFormat('pl-PL', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(d);
-  } catch {
-    return d.toLocaleDateString();
-  }
-}
-
-export function capitalizeFirstLetter(str: string): string {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 export function getStoredCurrentGoal(): DayGoal | null {
   try {
@@ -51,22 +27,10 @@ export function saveCurrentGoal(goal: DayGoal): boolean {
   }
 }
 
-export function exportBackup(currentGoal?: DayGoal | null): void {
-  const payload = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    currentGoal: currentGoal ?? getStoredCurrentGoal(),
-    history: getHistory(),
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `jeden-cel-dziennie-kopia-${getTodayDateString()}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
+/**
+ * Przywraca dane z kopii JSON (version: 1). Najpierw waliduje cały plik,
+ * a jeśli zapis się nie powiedzie, przywraca poprzedni stan.
+ */
 export async function importBackup(file: File): Promise<void> {
   const parsed: unknown = JSON.parse(await file.text());
   if (!parsed || typeof parsed !== 'object') throw new Error('Nieprawidłowy plik kopii.');
@@ -95,7 +59,9 @@ export async function importBackup(file: File): Promise<void> {
       else localStorage.setItem(STORAGE_KEYS.HISTORY, previousHistory);
       if (previousCurrent === null) localStorage.removeItem(STORAGE_KEYS.CURRENT_GOAL);
       else localStorage.setItem(STORAGE_KEYS.CURRENT_GOAL, previousCurrent);
-    } catch (rollbackError) { console.error('Nie udało się przywrócić danych po błędzie importu kopii.', rollbackError); }
+    } catch (rollbackError) {
+      console.error('Nie udało się przywrócić danych po błędzie importu kopii.', rollbackError);
+    }
     throw error;
   }
 }
@@ -153,78 +119,6 @@ export function deleteGoalFromHistory(id: string): boolean {
 }
 
 /**
- * Zamienia wartość na pole CSV zgodne z RFC 4180: zawsze w cudzysłowie,
- * z podwojonymi cudzysłowami wewnątrz.
- */
-function escapeCSVField(field: unknown): string {
-  if (field === null || field === undefined) return '""';
-  let str = String(field);
-  // Blokuje wykonanie formuły w arkuszu, gdy tekst zaczyna się od =, +, - lub @.
-  if (/^[\u0000-\u0020]*[=+@-]/.test(str)) str = `'${str}`;
-  const escaped = str.replace(/"/g, '""');
-  return `"${escaped}"`;
-}
-
-/**
- * Pobiera historię jako plik CSV (UTF-8 z BOM, średnik jako separator),
- * który poprawnie otwiera się w polskim Excelu.
- */
-export function exportHistoryToCSV(goals: DayGoal[]): void {
-  if (!goals || goals.length === 0) {
-    return;
-  }
-
-  const headers = [
-    'Data',
-    'Dzień tygodnia',
-    'Najważniejszy cel',
-    'Czy cel osiągnięto?',
-    'Postęp (%)',
-    'Co pomogło?',
-    'Co przeszkodziło?',
-    'Status dnia',
-    'Godzina utworzenia',
-    'Godzina zakończenia',
-  ];
-
-  const rows = goals.map((item) => {
-    let achievedText = 'W trakcie';
-    if (item.achieved === true) achievedText = 'Tak';
-    else if (item.achieved === false) achievedText = 'Nie';
-
-    const dayName = (item.formattedDate || item.date).split(',')[0] || '';
-    const createdTime = item.createdAt ? new Date(item.createdAt).toLocaleTimeString('pl-PL') : '';
-    const completedTime = item.completedAt ? new Date(item.completedAt).toLocaleTimeString('pl-PL') : '';
-
-    return [
-      escapeCSVField(item.date),
-      escapeCSVField(dayName),
-      escapeCSVField(item.goal),
-      escapeCSVField(achievedText),
-      escapeCSVField(`${item.progress}%`),
-      escapeCSVField(item.helped || ''),
-      escapeCSVField(item.hindered || ''),
-      escapeCSVField(item.status === 'completed' ? 'Zakończony' : item.status === 'abandoned' ? 'Przeniesiony' : 'W toku'),
-      escapeCSVField(createdTime),
-      escapeCSVField(completedTime),
-    ].join(';');
-  });
-
-  const csvContent = '\uFEFF' + [headers.map(escapeCSVField).join(';'), ...rows].join('\r\n');
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  const dateStr = getTodayDateString();
-  link.setAttribute('download', `jeden-cel-dziennie-historia-${dateStr}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-/**
  * Wgrywa trzy przykładowe dni, jeśli historia jest pusta.
  */
 export function seedSampleHistory(): boolean {
@@ -279,23 +173,4 @@ export function seedSampleHistory(): boolean {
     console.error('Błąd zapisu przykładowych danych', e);
     return false;
   }
-}
-
-function getDaysAgo(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - days);
-  return getTodayDateString(d);
-}
-
-export function calculateStats(history: DayGoal[]) {
-  const completed = history.filter((h) => h.status === 'completed');
-  const achieved = completed.filter((h) => h.achieved === true);
-  const totalDays = completed.length;
-  const rate = totalDays > 0 ? Math.round((achieved.length / totalDays) * 100) : 0;
-
-  return {
-    totalDays,
-    achievedCount: achieved.length,
-    successRate: rate,
-  };
 }
