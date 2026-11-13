@@ -168,16 +168,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
               />
             </label>
           </div>
-
-          {history.length === 0 && (
-            <button
-              onClick={handleAddSample}
-              className="py-2 px-3 text-xs font-medium text-stone-700 hover:text-stone-950 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <PlusCircle className="w-3.5 h-3.5 text-stone-500" />
-              <span>Wgraj przykładowe dane (demo)</span>
-            </button>
-          )}
         </div>
         {actionError && <p role="alert" className="px-6 py-2 text-sm text-rose-800 bg-rose-50">{actionError}</p>}
 
@@ -189,15 +179,18 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                 Brak zapisanych dni w historii
               </p>
               <p className="text-xs text-stone-600 mt-1 max-w-sm mx-auto">
-                Gdy zakończysz dzień i wypełnisz podsumowanie, pojawi się ono tutaj. Możesz też wgrać przykładowe dane, aby przetestować eksport CSV.
+                Gdy zakończysz dzień i wypełnisz podsumowanie, pojawi się ono tutaj.
               </p>
-              <button
-                onClick={handleAddSample}
-                className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
-              >
-                <PlusCircle className="w-3.5 h-3.5 text-amber-700" />
-                <span>Wczytaj 3 przykładowe dni</span>
-              </button>
+              {/* Przykładowe dane tylko do testów w trybie deweloperskim (npm run dev). */}
+              {import.meta.env.DEV && (
+                <button
+                  onClick={handleAddSample}
+                  className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+                >
+                  <PlusCircle className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Wczytaj 3 przykładowe dni (dev)</span>
+                </button>
+              )}
             </div>
           ) : (
             history.map((item) => {
