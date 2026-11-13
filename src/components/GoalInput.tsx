@@ -92,9 +92,9 @@ export const GoalInput: React.FC<GoalInputProps> = ({ onSetGoal, initialValue = 
           <span>Przykłady dla osób pracujących twórczo:</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {QUICK_INSPIRATIONS.map((item, idx) => (
+          {QUICK_INSPIRATIONS.map((item) => (
             <button
-              key={idx}
+              key={item}
               type="button"
               onClick={() => setText(item)}
               className="text-xs text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200/80 px-3 py-1.5 rounded-lg transition-colors cursor-pointer text-left"

@@ -7,6 +7,11 @@ export function playChime(type: 'success' | 'complete' | 'tick' = 'success') {
     if (!AudioContextClass) return;
 
     const ctx = new AudioContextClass();
+    // Każdy dźwięk ma własny kontekst, więc zamykamy go po ostatniej nucie,
+    // żeby przeglądarka nie trzymała otwartych kontekstów audio.
+    const closeWhenDone = (osc: OscillatorNode) => {
+      osc.onended = () => void ctx.close().catch(() => {});
+    };
 
     if (type === 'tick') {
       const osc = ctx.createOscillator();
@@ -17,6 +22,7 @@ export function playChime(type: 'success' | 'complete' | 'tick' = 'success') {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
       osc.connect(gain);
       gain.connect(ctx.destination);
+      closeWhenDone(osc);
       osc.start();
       osc.stop(ctx.currentTime + 0.05);
       return;
@@ -25,7 +31,7 @@ export function playChime(type: 'success' | 'complete' | 'tick' = 'success') {
     if (type === 'success' || type === 'complete') {
       const now = ctx.currentTime;
       const notes = type === 'success' ? [523.25, 659.25, 783.99, 1046.5] : [440, 554.37, 659.25, 880];
-      
+
       notes.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -39,6 +45,7 @@ export function playChime(type: 'success' | 'complete' | 'tick' = 'success') {
         osc.connect(gain);
         gain.connect(ctx.destination);
 
+        if (idx === notes.length - 1) closeWhenDone(osc);
         osc.start(now + idx * 0.08);
         osc.stop(now + idx * 0.08 + 0.55);
       });

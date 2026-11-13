@@ -141,12 +141,14 @@ export function saveGoalToHistory(goal: DayGoal): boolean {
   }
 }
 
-export function deleteGoalFromHistory(id: string): void {
+export function deleteGoalFromHistory(id: string): boolean {
   try {
     const history = getHistory().filter((item) => item.id !== id);
     localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+    return true;
   } catch (e) {
     console.error('Błąd usuwania z historii', e);
+    return false;
   }
 }
 
@@ -225,7 +227,7 @@ export function exportHistoryToCSV(goals: DayGoal[]): void {
 /**
  * Wgrywa trzy przykładowe dni, jeśli historia jest pusta.
  */
-export function seedSampleHistory(): void {
+export function seedSampleHistory(): boolean {
   const today = new Date();
   const sampleGoals: DayGoal[] = [
     {
@@ -269,9 +271,13 @@ export function seedSampleHistory(): void {
     },
   ];
 
-  const current = getHistory();
-  if (current.length === 0) {
+  if (getHistory().length > 0) return true;
+  try {
     localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(sampleGoals));
+    return true;
+  } catch (e) {
+    console.error('Błąd zapisu przykładowych danych', e);
+    return false;
   }
 }
 

@@ -20,7 +20,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   onRefresh,
 }) => {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [backupError, setBackupError] = useState('');
+  const [actionError, setActionError] = useState('');
   const dialogRef = useRef<HTMLDivElement>(null);
   useModalAccessibility(dialogRef, isOpen, onClose);
 
@@ -39,22 +39,24 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   };
 
   const handleDelete = (id: string) => {
-    deleteGoalFromHistory(id);
+    const deleted = deleteGoalFromHistory(id);
+    setActionError(deleted ? '' : 'Nie udało się usunąć wpisu. Sprawdź miejsce w przeglądarce.');
     setConfirmDeleteId(null);
     onRefresh();
   };
 
   const handleAddSample = () => {
-    seedSampleHistory();
+    const seeded = seedSampleHistory();
+    setActionError(seeded ? '' : 'Nie udało się zapisać przykładowych danych.');
     onRefresh();
   };
 
   const handleBackupExport = () => {
     try {
       exportBackup(currentGoal);
-      setBackupError('');
+      setActionError('');
     } catch {
-      setBackupError('Nie udało się utworzyć kopii zapasowej.');
+      setActionError('Nie udało się utworzyć kopii zapasowej.');
     }
   };
 
@@ -69,10 +71,10 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
     if (confirmed) {
       try {
         await importBackup(file);
-        setBackupError('');
+        setActionError('');
         onRefresh();
       } catch (error) {
-        setBackupError(error instanceof Error ? error.message : 'Nie udało się wczytać kopii.');
+        setActionError(error instanceof Error ? error.message : 'Nie udało się wczytać kopii.');
       }
     }
     // Czyścimy pole, żeby ten sam plik można było wybrać ponownie.
@@ -177,7 +179,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
             </button>
           )}
         </div>
-        {backupError && <p role="alert" className="px-6 py-2 text-sm text-rose-800 bg-rose-50">{backupError}</p>}
+        {actionError && <p role="alert" className="px-6 py-2 text-sm text-rose-800 bg-rose-50">{actionError}</p>}
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {history.length === 0 ? (

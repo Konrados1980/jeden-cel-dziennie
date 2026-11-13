@@ -14,21 +14,13 @@ export const DayReview: React.FC<DayReviewProps> = ({
   onFinishDay,
   onBackToGoal,
 }) => {
-  // If progress was 100%, default achieved to true, otherwise check if already set
-  const [achieved, setAchieved] = useState<boolean | null>(
-    goal.achieved !== undefined ? goal.achieved : goal.progress >= 100
-  );
+  // Przy pierwszym podsumowaniu domyślna odpowiedź wynika z postępu (100% = Tak).
+  const [achieved, setAchieved] = useState<boolean>(goal.achieved ?? goal.progress >= 100);
   const [helped, setHelped] = useState(goal.helped || '');
   const [hindered, setHindered] = useState(goal.hindered || '');
-  const [showValidation, setShowValidation] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (achieved === null) {
-      setShowValidation(true);
-      return;
-    }
-
     playChime('complete');
     onFinishDay({
       achieved,
@@ -76,7 +68,6 @@ export const DayReview: React.FC<DayReviewProps> = ({
               aria-pressed={achieved === true}
               onClick={() => {
                 setAchieved(true);
-                setShowValidation(false);
                 playChime('tick');
               }}
               className={`py-4 px-4 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
@@ -102,7 +93,6 @@ export const DayReview: React.FC<DayReviewProps> = ({
               aria-pressed={achieved === false}
               onClick={() => {
                 setAchieved(false);
-                setShowValidation(false);
                 playChime('tick');
               }}
               className={`py-4 px-4 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
@@ -123,12 +113,6 @@ export const DayReview: React.FC<DayReviewProps> = ({
               <span className="font-semibold text-base">Nie</span>
             </button>
           </div>
-
-          {showValidation && achieved === null && (
-            <p className="mt-3 text-xs text-rose-600 font-medium">
-              Wybierz "Tak" lub "Nie", aby móc zapisać podsumowanie.
-            </p>
-          )}
         </div>
 
         <div className="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200/90 shadow-sm space-y-5">
