@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AppStage, DayGoal } from './types';
 import {
   getStoredCurrentGoal,

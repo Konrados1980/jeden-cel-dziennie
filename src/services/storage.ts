@@ -3,7 +3,6 @@ import { DayGoal } from '../types';
 const STORAGE_KEYS = {
   CURRENT_GOAL: 'jeden_cel_dziennie_current',
   HISTORY: 'jeden_cel_dziennie_history',
-  THEME: 'jeden_cel_dziennie_theme',
 };
 
 export function getTodayDateString(d = new Date()): string {
@@ -148,15 +147,6 @@ export function deleteGoalFromHistory(id: string): void {
     localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
   } catch (e) {
     console.error('Błąd usuwania z historii', e);
-  }
-}
-
-export function clearAllData(): void {
-  try {
-    localStorage.removeItem(STORAGE_KEYS.CURRENT_GOAL);
-    localStorage.removeItem(STORAGE_KEYS.HISTORY);
-  } catch (e) {
-    console.error('Błąd czyszczenia danych', e);
   }
 }
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, X, ArrowLeft, Send, Sparkles } from 'lucide-react';
+import { Check, X, ArrowLeft, Send } from 'lucide-react';
 import { DayGoal } from '../types';
 import { playChime } from '../utils/sound';
 

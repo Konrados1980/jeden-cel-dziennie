@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Sliders, Edit3, ArrowRight, Sparkles, Check } from 'lucide-react';
+import { CheckCircle2, Sliders, Edit3, ArrowRight } from 'lucide-react';
 import { DayGoal } from '../types';
 import { playChime } from '../utils/sound';
 
