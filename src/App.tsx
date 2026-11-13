@@ -126,6 +126,7 @@ export default function App() {
       ...currentGoal,
       status: 'completed',
       achieved,
+      progress: achieved ? 100 : currentGoal.progress,
       helped,
       hindered,
       completedAt: new Date().toISOString(),
