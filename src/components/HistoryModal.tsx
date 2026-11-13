@@ -49,10 +49,46 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
     onRefresh();
   };
 
+  const handleBackupExport = () => {
+    try {
+      exportBackup(currentGoal);
+      setBackupError('');
+    } catch {
+      setBackupError('Nie udało się utworzyć kopii zapasowej.');
+    }
+  };
+
+  const handleBackupImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.target;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const confirmed = window.confirm(
+      'Przywrócenie kopii zastąpi aktualną historię i cel. Najpierw pobierz kopię obecnych danych. Kontynuować?',
+    );
+    if (confirmed) {
+      try {
+        await importBackup(file);
+        setBackupError('');
+        onRefresh();
+      } catch (error) {
+        setBackupError(error instanceof Error ? error.message : 'Nie udało się wczytać kopii.');
+      }
+    }
+    // Czyścimy pole, żeby ten sam plik można było wybrać ponownie.
+    input.value = '';
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-xs animate-fade-in">
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="history-title" tabIndex={-1} className="bg-white rounded-2xl shadow-xl border border-stone-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-        {/* Header */}
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="history-title"
+        tabIndex={-1}
+        className="bg-white rounded-2xl shadow-xl border border-stone-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+      >
         <div className="p-5 sm:px-6 border-b border-stone-200/80 flex items-center justify-between bg-stone-50/50">
           <div>
             <h3 className="font-semibold text-lg text-stone-900">
@@ -71,7 +107,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
           </button>
         </div>
 
-        {/* Stats bar */}
         {history.length > 0 && (
           <div className="grid grid-cols-3 border-b border-stone-100 bg-stone-50/30 px-6 py-3.5 text-center">
             <div>
@@ -101,31 +136,35 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
           </div>
         )}
 
-        {/* Action bar */}
         <div className="p-4 sm:px-6 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3 bg-white">
           <div className="flex flex-wrap gap-2">
-          <button
-            onClick={handleExport}
-            disabled={history.length === 0 && !currentGoal}
-            className="py-2 px-3.5 rounded-lg bg-stone-900 hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-2xs"
-          >
-            <Download className="w-4 h-4 text-stone-300" />
-            <span>Eksportuj do CSV (Excel / Sheets)</span>
-          </button>
-          <button type="button" onClick={() => { try { exportBackup(currentGoal); setBackupError(''); } catch { setBackupError('Nie udało się utworzyć kopii zapasowej.'); } }} className="py-2 px-3 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs sm:text-sm font-medium flex items-center gap-2">
-            <Download className="w-4 h-4" /> Kopia JSON
-          </button>
-          <label className="py-2 px-3 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs sm:text-sm font-medium flex items-center gap-2 cursor-pointer">
-            <Upload className="w-4 h-4" /> Przywróć kopię
-            <input type="file" accept="application/json,.json" className="sr-only" aria-label="Wybierz kopię zapasową JSON" onChange={async (event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-              if (!window.confirm('Przywrócenie kopii zastąpi aktualną historię i cel. Najpierw pobierz kopię obecnych danych. Kontynuować?')) { event.target.value = ''; return; }
-              try { await importBackup(file); setBackupError(''); onRefresh(); }
-              catch (error) { setBackupError(error instanceof Error ? error.message : 'Nie udało się wczytać kopii.'); }
-              event.target.value = '';
-            }} />
-          </label>
+            <button
+              onClick={handleExport}
+              disabled={history.length === 0 && !currentGoal}
+              className="py-2 px-3.5 rounded-lg bg-stone-900 hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-2xs"
+            >
+              <Download className="w-4 h-4 text-stone-300" />
+              <span>Eksportuj do CSV (Excel / Sheets)</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleBackupExport}
+              className="py-2 px-3 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              <span>Kopia JSON</span>
+            </button>
+            <label className="py-2 px-3 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer">
+              <Upload className="w-4 h-4" />
+              <span>Przywróć kopię</span>
+              <input
+                type="file"
+                accept="application/json,.json"
+                className="sr-only"
+                aria-label="Wybierz kopię zapasową JSON"
+                onChange={handleBackupImport}
+              />
+            </label>
           </div>
 
           {history.length === 0 && (
@@ -140,7 +179,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
         </div>
         {backupError && <p role="alert" className="px-6 py-2 text-sm text-rose-800 bg-rose-50">{backupError}</p>}
 
-        {/* Content list */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {history.length === 0 ? (
             <div className="text-center py-12 text-stone-500">
@@ -207,7 +245,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                       </h4>
                     </div>
 
-                    {/* Delete entry */}
                     {confirmDeleteId === item.id ? (
                       <div className="flex items-center gap-1 text-xs">
                         <button
@@ -234,7 +271,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                     )}
                   </div>
 
-                  {/* Reflection notes if present */}
                   {(item.helped || item.hindered) && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 text-xs border-t border-stone-100">
                       {item.helped && (
@@ -261,7 +297,6 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
           )}
         </div>
 
-        {/* Footer */}
         <div className="p-4 border-t border-stone-200 bg-stone-50/50 flex justify-end">
           <button
             onClick={onClose}

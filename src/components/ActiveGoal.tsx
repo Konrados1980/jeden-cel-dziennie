@@ -53,7 +53,6 @@ export const ActiveGoal: React.FC<ActiveGoalProps> = ({
 
   return (
     <div className="w-full max-w-xl mx-auto py-8 sm:py-12 px-4 sm:px-0">
-      {/* Category header */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-xs font-semibold tracking-wider text-amber-700 uppercase bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-md">
           Dzisiejszy priorytet
@@ -67,13 +66,11 @@ export const ActiveGoal: React.FC<ActiveGoalProps> = ({
         </button>
       </div>
 
-      {/* Main Goal Card */}
       <div className="bg-white rounded-2xl border border-stone-200/90 shadow-sm p-6 sm:p-8 mb-6">
         <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-stone-900 leading-snug break-words">
           {goal.goal}
         </h2>
 
-        {/* Progress Display */}
         <div className="mt-8 pt-6 border-t border-stone-100">
           <div className="flex items-baseline justify-between mb-2">
             <span className="text-xs sm:text-sm font-medium text-stone-600 flex items-center gap-1.5">
@@ -91,7 +88,6 @@ export const ActiveGoal: React.FC<ActiveGoalProps> = ({
             {getProgressLabel(sliderValue)}
           </p>
 
-          {/* Interactive Range Slider */}
           <div className="space-y-3">
             <input
               type="range"
@@ -104,7 +100,6 @@ export const ActiveGoal: React.FC<ActiveGoalProps> = ({
               className="w-full h-2.5 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-stone-900 transition-all focus:outline-hidden"
             />
 
-            {/* Quick Milestone buttons */}
             <div className="flex items-center justify-between gap-1 sm:gap-2">
               {[0, 25, 50, 75, 100].map((step) => {
                 const isActive = sliderValue === step;
@@ -128,9 +123,7 @@ export const ActiveGoal: React.FC<ActiveGoalProps> = ({
         </div>
       </div>
 
-      {/* Main Action Buttons */}
       <div className="space-y-3">
-        {/* Primary: Cel osiągnięty */}
         <button
           onClick={handleMarkAchieved}
           className="w-full py-4 px-6 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-base sm:text-lg transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2.5 cursor-pointer active:scale-[0.99]"
@@ -139,7 +132,6 @@ export const ActiveGoal: React.FC<ActiveGoalProps> = ({
           <span>Cel osiągnięty</span>
         </button>
 
-        {/* Secondary: Podsumuj i zakończ dzień (review) */}
         <button
           onClick={onStartReview}
           className="w-full py-3.5 px-6 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-medium text-sm sm:text-base transition-colors flex items-center justify-center gap-2 cursor-pointer"
@@ -149,7 +141,6 @@ export const ActiveGoal: React.FC<ActiveGoalProps> = ({
         </button>
       </div>
 
-      {/* Mindset tip */}
       <div className="mt-8 text-center">
         <p className="text-xs text-stone-600 max-w-sm mx-auto leading-relaxed">
           „Twórcza praca wymaga obrony uwagi. Gdy skończysz ten cel, zamknij laptopa z poczuciem dobrze wykonanego dnia.”

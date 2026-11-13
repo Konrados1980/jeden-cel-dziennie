@@ -1,5 +1,5 @@
 /**
- * Minimalist Web Audio chime for satisfying completion feedback
+ * Krótkie dźwięki interakcji generowane przez Web Audio API.
  */
 export function playChime(type: 'success' | 'complete' | 'tick' = 'success') {
   try {
@@ -44,6 +44,6 @@ export function playChime(type: 'success' | 'complete' | 'tick' = 'success') {
       });
     }
   } catch {
-    // AudioContext blocked or not supported - silently ignore
+    // Dźwięk jest tylko dodatkiem: brak obsługi audio nie może psuć aplikacji.
   }
 }

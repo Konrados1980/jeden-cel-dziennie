@@ -26,7 +26,7 @@ export default function App() {
   const [editGoalMode, setEditGoalMode] = useState(false);
   const [storageError, setStorageError] = useState('');
 
-  // Initialize data from localStorage on load
+  // Wczytuje dane z localStorage i archiwizuje cel z poprzedniego dnia.
   const loadData = useCallback(() => {
     const storedGoal = getStoredCurrentGoal();
     if (storedGoal && storedGoal.date < getTodayDateString()) {
@@ -64,7 +64,6 @@ export default function App() {
     return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, [loadData]);
 
-  // Handler: Set new goal for today
   const handleSetGoal = (goalText: string) => {
     const now = new Date();
     const todayStr = getTodayDateString(now);
@@ -85,7 +84,6 @@ export default function App() {
     setStage('active');
   };
 
-  // Handler: Update progress slider
   const handleUpdateProgress = (progress: number) => {
     if (!currentGoal) return;
     const updated: DayGoal = {
@@ -96,7 +94,6 @@ export default function App() {
     if (!saveCurrentGoal(updated)) setStorageError('Nie udało się zapisać postępu. Zmiany mogą zniknąć po zamknięciu strony.');
   };
 
-  // Handler: Click "Cel osiągnięty"
   const handleCompleteGoal = () => {
     if (!currentGoal) return;
     const updated: DayGoal = {
@@ -106,11 +103,10 @@ export default function App() {
     };
     setCurrentGoal(updated);
     if (!saveCurrentGoal(updated)) setStorageError('Nie udało się zapisać celu. Sprawdź wolne miejsce w przeglądarce.');
-    // Transition straight to evening review to capture what helped/hindered
+    // Od razu przechodzimy do wieczornego podsumowania.
     setStage('review');
   };
 
-  // Handler: Finish Day (save reflection to history & mark completed)
   const handleFinishDay = ({
     achieved,
     helped,
@@ -137,12 +133,10 @@ export default function App() {
     const historySaved = saveGoalToHistory(completedGoal);
     if (!currentSaved || !historySaved) setStorageError('Nie udało się zapisać podsumowania. Zrób kopię danych i sprawdź wolne miejsce w przeglądarce.');
 
-    // Refresh history in state
     setHistory(getHistory());
     setStage('completed');
   };
 
-  // Handler: Start a fresh new day / goal
   const handleStartNewDay = () => {
     if (!clearCurrentGoal()) setStorageError('Nie udało się wyczyścić aktywnego celu.');
     setCurrentGoal(null);
@@ -150,7 +144,6 @@ export default function App() {
     setEditGoalMode(false);
   };
 
-  // Handler: Quick CSV Export
   const handleQuickExport = () => {
     let exportList = [...history];
     if (currentGoal) {
@@ -167,17 +160,25 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col font-sans selection:bg-amber-100 selection:text-amber-900">
-      {/* Top Header */}
       <Header
         onOpenHistory={() => setIsHistoryOpen(true)}
         onQuickExport={handleQuickExport}
         historyCount={history.length}
       />
 
-      {/* Main Container */}
       <main className="flex-1 flex flex-col justify-center px-4 sm:px-6">
-        {storageError && <div role="alert" className="mx-auto mt-4 max-w-xl rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">{storageError}<button type="button" onClick={() => setStorageError('')} className="ml-3 underline">Zamknij</button></div>}
-        {/* Stage 1: Setup / Input or Edit Goal */}
+        {storageError && (
+          <div
+            role="alert"
+            className="mx-auto mt-4 max-w-xl rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900"
+          >
+            {storageError}
+            <button type="button" onClick={() => setStorageError('')} className="ml-3 underline">
+              Zamknij
+            </button>
+          </div>
+        )}
+        {/* Etap 1: wpisanie lub edycja celu */}
         {(stage === 'setup' || editGoalMode) && (
           <GoalInput
             onSetGoal={handleSetGoal}
@@ -185,7 +186,7 @@ export default function App() {
           />
         )}
 
-        {/* Stage 2: Active Goal with Progress Slider */}
+        {/* Etap 2: aktywny cel z suwakiem postępu */}
         {stage === 'active' && !editGoalMode && currentGoal && (
           <ActiveGoal
             goal={currentGoal}
@@ -196,7 +197,7 @@ export default function App() {
           />
         )}
 
-        {/* Stage 3: Evening Review (Tak/Nie, co pomogło, co przeszkodziło) */}
+        {/* Etap 3: wieczorne podsumowanie */}
         {stage === 'review' && currentGoal && (
           <DayReview
             goal={currentGoal}
@@ -205,7 +206,7 @@ export default function App() {
           />
         )}
 
-        {/* Stage 4: Day Completed Summary */}
+        {/* Etap 4: dzień zakończony */}
         {stage === 'completed' && currentGoal && (
           <DayCompleted
             goal={currentGoal}
@@ -217,7 +218,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="w-full border-t border-stone-200/60 py-4 px-6 text-center text-xs text-stone-600 bg-white/50">
         <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>Jeden cel dziennie • Skupienie i spokój dla twórców</span>
@@ -239,7 +239,6 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Modals */}
       <HistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}

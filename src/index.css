@@ -19,7 +19,7 @@
   }
 }
 
-/* Custom range slider styling */
+/* Wygląd uchwytu suwaka postępu */
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 22px;

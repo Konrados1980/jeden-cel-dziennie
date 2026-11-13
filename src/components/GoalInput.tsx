@@ -41,7 +41,6 @@ export const GoalInput: React.FC<GoalInputProps> = ({ onSetGoal, initialValue = 
 
   return (
     <div className="w-full max-w-xl mx-auto py-8 sm:py-14 px-4 sm:px-0">
-      {/* Top philosophical badge */}
       <div className="flex items-center gap-2 justify-center mb-6">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200/60">
           <Compass className="w-3.5 h-3.5 text-amber-600" />
@@ -87,7 +86,6 @@ export const GoalInput: React.FC<GoalInputProps> = ({ onSetGoal, initialValue = 
         </button>
       </form>
 
-      {/* Quick inspirations */}
       <div className="mt-10 pt-8 border-t border-stone-200/70">
         <div className="flex items-center gap-2 text-xs font-semibold text-stone-600 uppercase tracking-wider mb-3">
           <Lightbulb className="w-3.5 h-3.5 text-amber-500" />

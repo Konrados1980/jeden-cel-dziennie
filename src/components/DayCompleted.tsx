@@ -21,7 +21,6 @@ export const DayCompleted: React.FC<DayCompletedProps> = ({
 
   return (
     <div className="w-full max-w-xl mx-auto py-8 sm:py-12 px-4 sm:px-0">
-      {/* Top Banner */}
       <div
         className={`rounded-2xl p-6 sm:p-8 text-center border mb-6 ${
           isAchieved
@@ -55,7 +54,6 @@ export const DayCompleted: React.FC<DayCompletedProps> = ({
         </div>
       </div>
 
-      {/* Goal & Reflection Card */}
       <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 space-y-4 mb-6">
         <div>
           <span className="text-xs uppercase tracking-wider font-semibold text-stone-600">
@@ -96,7 +94,6 @@ export const DayCompleted: React.FC<DayCompletedProps> = ({
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="space-y-3">
         <button
           onClick={onExportCSV}

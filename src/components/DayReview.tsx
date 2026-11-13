@@ -39,7 +39,6 @@ export const DayReview: React.FC<DayReviewProps> = ({
 
   return (
     <div className="w-full max-w-xl mx-auto py-8 sm:py-12 px-4 sm:px-0">
-      {/* Back button */}
       <button
         type="button"
         onClick={onBackToGoal}
@@ -66,14 +65,12 @@ export const DayReview: React.FC<DayReviewProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Question: Czy udało Ci się osiągnąć dzisiejszy cel? */}
         <div className="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200/90 shadow-sm">
           <label className="block text-base sm:text-lg font-medium text-stone-900 mb-4">
             Czy udało Ci się osiągnąć dzisiejszy cel?
           </label>
 
           <div className="grid grid-cols-2 gap-3">
-            {/* TAK Button */}
             <button
               type="button"
               aria-pressed={achieved === true}
@@ -100,7 +97,6 @@ export const DayReview: React.FC<DayReviewProps> = ({
               <span className="font-semibold text-base">Tak</span>
             </button>
 
-            {/* NIE Button */}
             <button
               type="button"
               aria-pressed={achieved === false}
@@ -135,9 +131,7 @@ export const DayReview: React.FC<DayReviewProps> = ({
           )}
         </div>
 
-        {/* Two reflection fields */}
         <div className="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200/90 shadow-sm space-y-5">
-          {/* Co pomogło */}
           <div>
             <label htmlFor="reflection-helped" className="block text-sm font-medium text-stone-900 mb-1.5">
               Co pomogło? <span className="text-xs text-stone-600 font-normal">(opcjonalne)</span>
@@ -152,7 +146,6 @@ export const DayReview: React.FC<DayReviewProps> = ({
             />
           </div>
 
-          {/* Co przeszkodziło */}
           <div>
             <label htmlFor="reflection-hindered" className="block text-sm font-medium text-stone-900 mb-1.5">
               Co przeszkodziło? <span className="text-xs text-stone-600 font-normal">(opcjonalne)</span>
@@ -168,7 +161,6 @@ export const DayReview: React.FC<DayReviewProps> = ({
           </div>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           className="w-full py-4 px-6 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-medium text-base transition-all shadow-xs hover:shadow-md flex items-center justify-center gap-2 cursor-pointer"

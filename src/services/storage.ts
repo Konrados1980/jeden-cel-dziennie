@@ -115,7 +115,7 @@ export function getHistory(): DayGoal[] {
     const raw = localStorage.getItem(STORAGE_KEYS.HISTORY);
     if (!raw) return [];
     const list = JSON.parse(raw) as DayGoal[];
-    // Sort descending by date
+    // Najnowsze dni na górze.
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } catch (e) {
     console.error('Błąd odczytu historii z localStorage', e);
@@ -126,7 +126,7 @@ export function getHistory(): DayGoal[] {
 export function saveGoalToHistory(goal: DayGoal): boolean {
   try {
     const history = getHistory();
-    // Replace only the same record; multiple goals on one date must not erase each other.
+    // Podmieniamy tylko ten sam rekord, żeby kilka celów z jednego dnia się nie nadpisywało.
     const existingIndex = history.findIndex((h) => h.id === goal.id);
     if (existingIndex >= 0) {
       history[existingIndex] = goal;
@@ -151,20 +151,21 @@ export function deleteGoalFromHistory(id: string): void {
 }
 
 /**
- * Escapes fields for CSV according to RFC 4180
+ * Zamienia wartość na pole CSV zgodne z RFC 4180: zawsze w cudzysłowie,
+ * z podwojonymi cudzysłowami wewnątrz.
  */
 function escapeCSVField(field: unknown): string {
   if (field === null || field === undefined) return '""';
   let str = String(field);
-  // Prevent spreadsheet formula execution in user supplied cells.
+  // Blokuje wykonanie formuły w arkuszu, gdy tekst zaczyna się od =, +, - lub @.
   if (/^[\u0000-\u0020]*[=+@-]/.test(str)) str = `'${str}`;
-  // If string contains comma, newline or quotes, wrap in quotes and escape internal quotes
   const escaped = str.replace(/"/g, '""');
   return `"${escaped}"`;
 }
 
 /**
- * Exports history list to a clean UTF-8 encoded CSV with BOM
+ * Pobiera historię jako plik CSV (UTF-8 z BOM, średnik jako separator),
+ * który poprawnie otwiera się w polskim Excelu.
  */
 export function exportHistoryToCSV(goals: DayGoal[]): void {
   if (!goals || goals.length === 0) {
@@ -204,7 +205,7 @@ export function exportHistoryToCSV(goals: DayGoal[]): void {
       escapeCSVField(item.status === 'completed' ? 'Zakończony' : item.status === 'abandoned' ? 'Przeniesiony' : 'W toku'),
       escapeCSVField(createdTime),
       escapeCSVField(completedTime),
-    ].join(';'); // Semicolon is the standard Excel delimiter for European/Polish locales
+    ].join(';');
   });
 
   const csvContent = '\uFEFF' + [headers.map(escapeCSVField).join(';'), ...rows].join('\r\n');
@@ -222,7 +223,7 @@ export function exportHistoryToCSV(goals: DayGoal[]): void {
 }
 
 /**
- * Sample generator for testing and initial exploration
+ * Wgrywa trzy przykładowe dni, jeśli historia jest pusta.
  */
 export function seedSampleHistory(): void {
   const today = new Date();

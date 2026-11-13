@@ -1,18 +1,18 @@
 export type DayStatus = 'in_progress' | 'completed' | 'abandoned';
 
 export interface DayGoal {
-  id: string; // YYYY-MM-DD or unique id
-  date: string; // ISO date string YYYY-MM-DD
-  formattedDate: string; // readable Polish date, e.g. "Środa, 23 września 2026"
+  id: string; // unikalny identyfikator, np. "goal-1727078400000"
+  date: string; // data lokalna w formacie RRRR-MM-DD
+  formattedDate: string; // data po polsku, np. "Środa, 23 września 2026"
   goal: string;
-  progress: number; // 0 to 100
+  progress: number; // od 0 do 100
   status: DayStatus;
-  achieved?: boolean; // true = Tak, false = Nie
+  achieved?: boolean; // true = Tak, false = Nie, brak = jeszcze bez podsumowania
   helped?: string; // Co pomogło
   hindered?: string; // Co przeszkodziło
-  completedAt?: string; // ISO timestamp
-  createdAt: string; // ISO timestamp
-  notes?: string;
+  completedAt?: string; // znacznik czasu ISO
+  createdAt: string; // znacznik czasu ISO
+  notes?: string; // obecnie nieużywane; część formatu danych, nie usuwać bez migracji
 }
 
 export type AppStage = 'setup' | 'active' | 'review' | 'completed';

@@ -18,7 +18,6 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="w-full border-b border-stone-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-20">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Brand */}
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-stone-900 text-stone-50 flex items-center justify-center shadow-xs">
             <Target className="w-5 h-5 text-amber-400" />
@@ -33,7 +32,6 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Action icons */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {historyCount > 0 && (
             <button
