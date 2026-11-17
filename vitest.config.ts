@@ -9,5 +9,8 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['src/test/setup.ts'],
     restoreMocks: true,
+    // Testy całego przepływu klikają i piszą jak człowiek; przy wielu plikach naraz
+    // potrafią przekroczyć domyślne 5 s, więc dajemy im zapas.
+    testTimeout: 20_000,
   },
 });
