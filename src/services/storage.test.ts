@@ -7,6 +7,7 @@ import {
   importBackup,
   saveCurrentGoal,
   saveGoalToHistory,
+  takeCorruptionNotice,
 } from './storage';
 import { makeGoal } from './testFactories';
 
@@ -28,6 +29,7 @@ function failWrites() {
 
 beforeEach(() => {
   localStorage.clear();
+  takeCorruptionNotice();
 });
 
 describe('aktualny cel', () => {
@@ -164,5 +166,92 @@ describe('importBackup', () => {
     ).rejects.toThrow('Brak miejsca');
     expect(localStorage.getItem(HISTORY_KEY)).toBe(before[HISTORY_KEY]);
     expect(localStorage.getItem(CURRENT_KEY)).toBe(before[CURRENT_KEY]);
+  });
+});
+
+describe('uszkodzone dane', () => {
+  const CURRENT_BACKUP = `${CURRENT_KEY}_corrupted_backup`;
+  const HISTORY_BACKUP = `${HISTORY_KEY}_corrupted_backup`;
+
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  it('nieczytelny cel trafia do kopii, a główny klucz jest czyszczony', () => {
+    localStorage.setItem(CURRENT_KEY, '{nie-json');
+    expect(getStoredCurrentGoal()).toBeNull();
+    expect(localStorage.getItem(CURRENT_BACKUP)).toBe('{nie-json');
+    expect(localStorage.getItem(CURRENT_KEY)).toBeNull();
+    expect(takeCorruptionNotice()).toBe('backed_up');
+  });
+
+  it('cel w złym kształcie też trafia do kopii', () => {
+    const raw = JSON.stringify({ id: 'x', goal: 7 });
+    localStorage.setItem(CURRENT_KEY, raw);
+    expect(getStoredCurrentGoal()).toBeNull();
+    expect(localStorage.getItem(CURRENT_BACKUP)).toBe(raw);
+  });
+
+  it('nieczytelna historia trafia do kopii i nie ginie przy następnym zapisie', () => {
+    localStorage.setItem(HISTORY_KEY, 'zepsute[');
+    expect(getHistory()).toEqual([]);
+    expect(saveGoalToHistory(makeGoal({ id: 'nowy' }))).toBe(true);
+    expect(getHistory().map((g) => g.id)).toEqual(['nowy']);
+    expect(localStorage.getItem(HISTORY_BACKUP)).toBe('zepsute[');
+  });
+
+  it('historia, która nie jest listą, trafia do kopii', () => {
+    localStorage.setItem(HISTORY_KEY, '{"a":1}');
+    expect(getHistory()).toEqual([]);
+    expect(localStorage.getItem(HISTORY_BACKUP)).toBe('{"a":1}');
+  });
+
+  it('z historii znika tylko zły wpis, dobre zostają, a całość jest w kopii', () => {
+    const raw = JSON.stringify([makeGoal({ id: 'dobry' }), { id: 'zly', progress: 500 }]);
+    localStorage.setItem(HISTORY_KEY, raw);
+    expect(getHistory().map((g) => g.id)).toEqual(['dobry']);
+    expect(localStorage.getItem(HISTORY_BACKUP)).toBe(raw);
+    expect(JSON.parse(localStorage.getItem(HISTORY_KEY)!)).toHaveLength(1);
+  });
+
+  it('nie nadpisuje starszej kopii, tylko dokłada nową obok', () => {
+    localStorage.setItem(HISTORY_BACKUP, 'starsza kopia');
+    localStorage.setItem(HISTORY_KEY, 'nowe uszkodzenie');
+    getHistory();
+    expect(localStorage.getItem(HISTORY_BACKUP)).toBe('starsza kopia');
+    const extra = Object.keys(localStorage).filter((k) => k.startsWith(`${HISTORY_BACKUP}_`));
+    expect(extra).toHaveLength(1);
+    expect(localStorage.getItem(extra[0])).toBe('nowe uszkodzenie');
+  });
+
+  it('gdy kopii nie da się zapisać, niczego nie nadpisuje', () => {
+    localStorage.setItem(HISTORY_KEY, 'zepsute[');
+    localStorage.setItem(CURRENT_KEY, 'zepsuty-cel');
+    failWrites();
+    expect(saveGoalToHistory(makeGoal())).toBe(false);
+    expect(deleteGoalFromHistory('goal-1')).toBe(false);
+    expect(saveCurrentGoal(makeGoal())).toBe(false);
+    expect(clearCurrentGoal()).toBe(false);
+    expect(localStorage.getItem(HISTORY_KEY)).toBe('zepsute[');
+    expect(localStorage.getItem(CURRENT_KEY)).toBe('zepsuty-cel');
+    expect(takeCorruptionNotice()).toBe('backup_failed');
+  });
+
+  it('informacja o uszkodzeniu jest zwracana tylko raz', () => {
+    localStorage.setItem(HISTORY_KEY, 'zepsute[');
+    getHistory();
+    expect(takeCorruptionNotice()).toBe('backed_up');
+    expect(takeCorruptionNotice()).toBeNull();
+    getHistory();
+    expect(takeCorruptionNotice()).toBeNull();
+  });
+
+  it('poprawne dane nie tworzą kopii ani informacji', () => {
+    saveCurrentGoal(makeGoal());
+    saveGoalToHistory(makeGoal({ id: 'h' }));
+    getStoredCurrentGoal();
+    getHistory();
+    expect(Object.keys(localStorage).some((k) => k.includes('corrupted'))).toBe(false);
+    expect(takeCorruptionNotice()).toBeNull();
   });
 });

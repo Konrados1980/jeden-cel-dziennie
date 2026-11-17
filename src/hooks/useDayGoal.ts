@@ -6,6 +6,7 @@ import {
   clearCurrentGoal,
   getHistory,
   saveGoalToHistory,
+  takeCorruptionNotice,
 } from '../services/storage';
 import { getTodayDateString, formatPolishDate, capitalizeFirstLetter } from '../services/dates';
 import { exportHistoryToCSV } from '../services/exporters';
@@ -33,7 +34,8 @@ export function useDayGoal() {
         ? storedGoal
         : { ...storedGoal, status: 'abandoned', completedAt: new Date().toISOString() };
       const saved = saveGoalToHistory(archivedGoal);
-      const cleared = clearCurrentGoal();
+      // Cel z wczoraj usuwamy dopiero wtedy, gdy na pewno trafił do historii.
+      const cleared = saved && clearCurrentGoal();
       if (!saved || !cleared) setStorageError('Nie udało się bezpiecznie zamknąć celu z poprzedniego dnia. Zrób kopię danych i sprawdź miejsce w przeglądarce.');
       setCurrentGoal(null);
       setStage('setup');
@@ -50,6 +52,13 @@ export function useDayGoal() {
       setStage('setup');
     }
     setHistory(getHistory());
+
+    const notice = takeCorruptionNotice();
+    if (notice === 'backed_up') {
+      setStorageError('Część zapisanych danych była nieczytelna. Odłożyliśmy ją jako kopię w przeglądarce, żeby nie zginęła, a resztę wczytaliśmy normalnie.');
+    } else if (notice === 'backup_failed') {
+      setStorageError('Część zapisanych danych jest nieczytelna, a kopii nie udało się zapisać. Zwolnij miejsce w przeglądarce. Do tego czasu nie zapisujemy zmian, żeby niczego nie nadpisać.');
+    }
   }, []);
 
   useEffect(() => {
