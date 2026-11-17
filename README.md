@@ -26,6 +26,7 @@ npm run dev     # serwer deweloperski na http://localhost:3000
 npm run build   # build produkcyjny do katalogu dist/
 npm run preview # podgląd zbudowanej wersji
 npm run lint    # sprawdzenie typów (tsc --noEmit)
+npm test        # testy automatyczne (Vitest): zapis danych, CSV, kopia JSON, statystyki
 ```
 
 ## Stack
