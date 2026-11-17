@@ -38,7 +38,7 @@ React 19, TypeScript, Vite, Tailwind CSS 4, lucide-react.
 ```
 src/
 ├── main.tsx          # punkt wejścia
-├── App.tsx           # stan aplikacji: setup → active → review → completed
+├── App.tsx           # układ ekranu dla etapów: setup → active → review → completed
 ├── types.ts          # DayGoal, DayStatus, AppStage
 ├── services/
 │   ├── storage.ts    # localStorage: cel, historia, przywracanie kopii JSON
@@ -47,7 +47,7 @@ src/
 │   └── dates.ts      # daty po polsku
 ├── components/       # Header, GoalInput, ActiveGoal, DayReview,
 │                     # DayCompleted, HistoryModal, ReflectionNotes
-├── hooks/            # dostępność okien modalnych
+├── hooks/            # useDayGoal (przepływ dnia), dostępność okien modalnych
 └── utils/sound.ts    # dźwięki interakcji (Web Audio API)
 ```
 

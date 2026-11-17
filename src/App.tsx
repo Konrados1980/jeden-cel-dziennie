@@ -1,15 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { AppStage, DayGoal } from './types';
-import {
-  getStoredCurrentGoal,
-  saveCurrentGoal,
-  clearCurrentGoal,
-  getHistory,
-  saveGoalToHistory,
-} from './services/storage';
-import { getTodayDateString, formatPolishDate, capitalizeFirstLetter } from './services/dates';
-import { exportHistoryToCSV } from './services/exporters';
-import { mergeCurrentGoal } from './services/history';
+import { useState } from 'react';
+import { useDayGoal } from './hooks/useDayGoal';
 import { Header } from './components/Header';
 import { GoalInput } from './components/GoalInput';
 import { ActiveGoal } from './components/ActiveGoal';
@@ -18,138 +8,29 @@ import { DayCompleted } from './components/DayCompleted';
 import { HistoryModal } from './components/HistoryModal';
 
 export default function App() {
-  const [currentGoal, setCurrentGoal] = useState<DayGoal | null>(null);
-  const [stage, setStage] = useState<AppStage>('setup');
-  const [history, setHistory] = useState<DayGoal[]>([]);
+  const {
+    currentGoal,
+    stage,
+    history,
+    editGoalMode,
+    storageError,
+    reload,
+    setGoal,
+    updateProgress,
+    completeGoal,
+    finishDay,
+    startNewDay,
+    exportCSV,
+    startEditingGoal,
+    startReview,
+    backToGoal,
+    dismissError,
+  } = useDayGoal();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [editGoalMode, setEditGoalMode] = useState(false);
-  const [storageError, setStorageError] = useState('');
 
-  // Wczytuje dane z localStorage i archiwizuje cel z poprzedniego dnia.
-  const loadData = useCallback(() => {
-    const storedGoal = getStoredCurrentGoal();
-    if (storedGoal && storedGoal.date < getTodayDateString()) {
-      const archivedGoal: DayGoal = storedGoal.status === 'completed'
-        ? storedGoal
-        : { ...storedGoal, status: 'abandoned', completedAt: new Date().toISOString() };
-      const saved = saveGoalToHistory(archivedGoal);
-      const cleared = clearCurrentGoal();
-      if (!saved || !cleared) setStorageError('Nie udało się bezpiecznie zamknąć celu z poprzedniego dnia. Zrób kopię danych i sprawdź miejsce w przeglądarce.');
-      setCurrentGoal(null);
-      setStage('setup');
-    } else if (storedGoal && storedGoal.date === getTodayDateString()) {
-      setCurrentGoal(storedGoal);
-      if (storedGoal.status === 'completed') {
-        setStage('completed');
-      } else {
-        setStage('active');
-      }
-    } else {
-      if (storedGoal) clearCurrentGoal();
-      setCurrentGoal(null);
-      setStage('setup');
-    }
-    setHistory(getHistory());
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  useEffect(() => {
-    const refresh = () => loadData();
-    const timer = window.setInterval(refresh, 60_000);
-    window.addEventListener('focus', refresh);
-    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
-  }, [loadData]);
-
-  const handleSetGoal = (goalText: string) => {
-    const now = new Date();
-    const todayStr = getTodayDateString(now);
-
-    const updatedGoal: DayGoal = {
-      id: currentGoal?.id || `goal-${Date.now()}`,
-      date: currentGoal?.date || todayStr,
-      formattedDate: capitalizeFirstLetter(formatPolishDate(now)),
-      goal: goalText,
-      progress: currentGoal?.progress || 0,
-      status: 'in_progress',
-      createdAt: currentGoal?.createdAt || now.toISOString(),
-    };
-
-    setCurrentGoal(updatedGoal);
-    if (!saveCurrentGoal(updatedGoal)) setStorageError('Nie udało się zapisać celu. Sprawdź wolne miejsce w przeglądarce.');
-    setEditGoalMode(false);
-    setStage('active');
-  };
-
-  const handleUpdateProgress = (progress: number) => {
-    if (!currentGoal) return;
-    const updated: DayGoal = {
-      ...currentGoal,
-      progress,
-    };
-    setCurrentGoal(updated);
-    if (!saveCurrentGoal(updated)) setStorageError('Nie udało się zapisać postępu. Zmiany mogą zniknąć po zamknięciu strony.');
-  };
-
-  const handleCompleteGoal = () => {
-    if (!currentGoal) return;
-    const updated: DayGoal = {
-      ...currentGoal,
-      progress: 100,
-      achieved: true,
-    };
-    setCurrentGoal(updated);
-    if (!saveCurrentGoal(updated)) setStorageError('Nie udało się zapisać celu. Sprawdź wolne miejsce w przeglądarce.');
-    // Od razu przechodzimy do wieczornego podsumowania.
-    setStage('review');
-  };
-
-  const handleFinishDay = ({
-    achieved,
-    helped,
-    hindered,
-  }: {
-    achieved: boolean;
-    helped: string;
-    hindered: string;
-  }) => {
-    if (!currentGoal) return;
-
-    const completedGoal: DayGoal = {
-      ...currentGoal,
-      status: 'completed',
-      achieved,
-      progress: achieved ? 100 : currentGoal.progress,
-      helped,
-      hindered,
-      completedAt: new Date().toISOString(),
-    };
-
-    setCurrentGoal(completedGoal);
-    const currentSaved = saveCurrentGoal(completedGoal);
-    const historySaved = saveGoalToHistory(completedGoal);
-    if (!currentSaved || !historySaved) setStorageError('Nie udało się zapisać podsumowania. Zrób kopię danych i sprawdź wolne miejsce w przeglądarce.');
-
-    setHistory(getHistory());
-    setStage('completed');
-  };
-
-  const handleStartNewDay = () => {
-    if (!clearCurrentGoal()) setStorageError('Nie udało się wyczyścić aktywnego celu.');
-    setCurrentGoal(null);
-    setStage('setup');
-    setEditGoalMode(false);
-  };
-
+  // Gdy nie ma jeszcze danych do eksportu, pokazujemy historię z wyjaśnieniem.
   const handleQuickExport = () => {
-    const exportList = mergeCurrentGoal(history, currentGoal);
-    if (exportList.length > 0) {
-      exportHistoryToCSV(exportList);
-    } else {
-      setIsHistoryOpen(true);
-    }
+    if (!exportCSV()) setIsHistoryOpen(true);
   };
 
   return (
@@ -167,7 +48,7 @@ export default function App() {
             className="mx-auto mt-4 max-w-xl rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900"
           >
             {storageError}
-            <button type="button" onClick={() => setStorageError('')} className="ml-3 underline">
+            <button type="button" onClick={dismissError} className="ml-3 underline">
               Zamknij
             </button>
           </div>
@@ -175,7 +56,7 @@ export default function App() {
         {/* Etap 1: wpisanie lub edycja celu */}
         {(stage === 'setup' || editGoalMode) && (
           <GoalInput
-            onSetGoal={handleSetGoal}
+            onSetGoal={setGoal}
             initialValue={currentGoal?.goal || ''}
           />
         )}
@@ -184,10 +65,10 @@ export default function App() {
         {stage === 'active' && !editGoalMode && currentGoal && (
           <ActiveGoal
             goal={currentGoal}
-            onUpdateProgress={handleUpdateProgress}
-            onCompleteGoal={handleCompleteGoal}
-            onStartReview={() => setStage('review')}
-            onEditGoalText={() => setEditGoalMode(true)}
+            onUpdateProgress={updateProgress}
+            onCompleteGoal={completeGoal}
+            onStartReview={startReview}
+            onEditGoalText={startEditingGoal}
           />
         )}
 
@@ -195,8 +76,8 @@ export default function App() {
         {stage === 'review' && currentGoal && (
           <DayReview
             goal={currentGoal}
-            onFinishDay={handleFinishDay}
-            onBackToGoal={() => setStage('active')}
+            onFinishDay={finishDay}
+            onBackToGoal={backToGoal}
           />
         )}
 
@@ -204,8 +85,8 @@ export default function App() {
         {stage === 'completed' && currentGoal && (
           <DayCompleted
             goal={currentGoal}
-            onEditReview={() => setStage('review')}
-            onStartNewDay={handleStartNewDay}
+            onEditReview={startReview}
+            onStartNewDay={startNewDay}
             onOpenHistory={() => setIsHistoryOpen(true)}
             onExportCSV={handleQuickExport}
           />
@@ -238,7 +119,7 @@ export default function App() {
         onClose={() => setIsHistoryOpen(false)}
         history={history}
         currentGoal={currentGoal}
-        onRefresh={loadData}
+        onRefresh={reload}
       />
     </div>
   );
