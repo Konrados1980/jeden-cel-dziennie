@@ -120,6 +120,29 @@ describe('przepływ: cel → postęp → refleksja → historia → CSV', () => 
     expect(JSON.parse(localStorage.getItem(CURRENT_KEY)!)).toMatchObject({ goal: 'Druga wersja', progress: 75 });
   });
 
+  it('powrót z podsumowania aktywnego celu wraca do widoku celu', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await startDay(user, 'Cel w toku');
+    await user.click(screen.getByRole('button', { name: 'Podsumuj i zakończ dzień' }));
+    await user.click(screen.getByRole('button', { name: 'Wróć do widoku celu' }));
+    expect(screen.getByRole('heading', { name: 'Cel w toku' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Cel osiągnięty' })).toBeTruthy();
+  });
+
+  it('powrót z edycji podsumowania zakończonego dnia wraca do ekranu zakończenia', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await startDay(user, 'Zakończony cel');
+    await finishDay(user, { progress: '100%', answer: 'Tak', helped: 'Cisza' });
+    await user.click(screen.getByRole('button', { name: 'Edytuj dzisiejsze podsumowanie' }));
+    await user.click(screen.getByRole('button', { name: 'Wróć do widoku celu' }));
+
+    expect(screen.getByRole('heading', { name: 'Cel osiągnięty! Świetna robota.' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Cel osiągnięty' })).toBeNull();
+    expect(JSON.parse(localStorage.getItem(CURRENT_KEY)!)).toMatchObject({ status: 'completed', helped: 'Cisza' });
+  });
+
   it('„Ustaw nowy cel” wraca do wpisywania i zostawia historię', async () => {
     const user = userEvent.setup();
     render(<App />);

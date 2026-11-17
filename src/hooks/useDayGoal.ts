@@ -168,7 +168,8 @@ export function useDayGoal() {
     exportCSV,
     startEditingGoal: () => setEditGoalMode(true),
     startReview: () => setStage('review'),
-    backToGoal: () => setStage('active'),
+    // Z edycji podsumowania zakończonego dnia wracamy na ekran zakończenia, a nie do aktywnego celu.
+    backToGoal: () => setStage(currentGoal?.status === 'completed' ? 'completed' : 'active'),
     dismissError: () => setStorageError(''),
   };
 }
